@@ -30,6 +30,8 @@
         {
             this.components = new System.ComponentModel.Container();
             this.cheDataGridView = new System.Windows.Forms.DataGridView();
+            this.cheRunningStatus = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.cheSSLStatus = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.cheInstanceId = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.cheEnvironmentId = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.cheDisplayName = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -46,6 +48,9 @@
             this.cheTopologyType = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.cheTopologyVersion = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.cheInstanceContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
+            // DXC mlitwin2@dxc.com: new fields in the grid -begin
+            this.cheRefreshStatusToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            // DXC mlitwin2@dxc.com: new fields in the grid -end
             this.cheLogonToAppToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cheOpenRDPConnectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cheManageVirtualMachineToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -173,9 +178,11 @@
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.projectDescriptionLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
+            this.toolStripRefreshProgressBar = new System.Windows.Forms.ToolStripProgressBar();
             this.notifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.notifyIconContextMenu = new System.Windows.Forms.ContextMenu();
             this.notifyIconMenuClose = new System.Windows.Forms.MenuItem();
+            this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
             ((System.ComponentModel.ISupportInitialize)(this.cheDataGridView)).BeginInit();
             this.cheInstanceContextMenu.SuspendLayout();
             this.mainMenuStrip.SuspendLayout();
@@ -197,6 +204,8 @@
             this.cheDataGridView.BackgroundColor = System.Drawing.SystemColors.Window;
             this.cheDataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.cheDataGridView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.cheRunningStatus,
+            this.cheSSLStatus,
             this.cheInstanceId,
             this.cheEnvironmentId,
             this.cheDisplayName,
@@ -224,6 +233,22 @@
             this.cheDataGridView.CellMouseDoubleClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.CheDataGridView_CellMouseDoubleClick);
             this.cheDataGridView.ColumnHeaderMouseClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.CheDataGridView_ColumnHeaderMouseClick);
             this.cheDataGridView.MouseDown += new System.Windows.Forms.MouseEventHandler(this.DataGridView_MouseDown);
+            // 
+            // cheRunningStatus
+            // 
+            this.cheRunningStatus.DataPropertyName = "RunningStatus";
+            this.cheRunningStatus.HeaderText = "Running Status";
+            this.cheRunningStatus.Name = "cheRunningStatus";
+            this.cheRunningStatus.ReadOnly = true;
+            this.cheRunningStatus.Width = 96;
+            // 
+            // cheSSLStatus
+            // 
+            this.cheSSLStatus.DataPropertyName = "SSLStatus";
+            this.cheSSLStatus.HeaderText = "SSL Status";
+            this.cheSSLStatus.Name = "cheSSLStatus";
+            this.cheSSLStatus.ReadOnly = true;
+            this.cheSSLStatus.Width = 78;
             // 
             // cheInstanceId
             // 
@@ -364,6 +389,9 @@
             // 
             this.cheInstanceContextMenu.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.cheInstanceContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            // DXC mlitwin2@dxc.com: new fields in the grid -begin
+            this.cheRefreshStatusToolStripMenuItem,
+            // DXC mlitwin2@dxc.com: new fields in the grid -end
             this.cheLogonToAppToolStripMenuItem,
             this.cheOpenRDPConnectionToolStripMenuItem,
             this.cheManageVirtualMachineToolStripMenuItem,
@@ -377,6 +405,15 @@
             this.cheInstanceContextMenu.Name = "instanceContextMenuStrip";
             this.cheInstanceContextMenu.Size = new System.Drawing.Size(192, 224);
             this.cheInstanceContextMenu.Opening += new System.ComponentModel.CancelEventHandler(this.InstanceContextMenu_Opening);
+            // DXC mlitwin2@dxc.com: new fields in the grid -begin
+            //
+            // cheRefreshStatusToolStripMenuItem
+            //
+            this.cheRefreshStatusToolStripMenuItem.Name = "cheRefreshStatusToolStripMenuItem";
+            this.cheRefreshStatusToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
+            this.cheRefreshStatusToolStripMenuItem.Text = "Refresh instance";
+            this.cheRefreshStatusToolStripMenuItem.Click += new System.EventHandler(this.cheRefreshInstanceToolStripMenuItem_Click);
+            // DXC mlitwin2@dxc.com: new fields in the grid -end
             // 
             // cheLogonToAppToolStripMenuItem
             // 
@@ -816,21 +853,21 @@
             // allInstancesExportChangesTSM
             // 
             this.allInstancesExportChangesTSM.Name = "allInstancesExportChangesTSM";
-            this.allInstancesExportChangesTSM.Size = new System.Drawing.Size(180, 22);
+            this.allInstancesExportChangesTSM.Size = new System.Drawing.Size(166, 22);
             this.allInstancesExportChangesTSM.Text = "All instances";
             this.allInstancesExportChangesTSM.Click += new System.EventHandler(this.allInstancesExportChangesTSM_Click);
             // 
             // cloudInstancesExportChangesTSM
             // 
             this.cloudInstancesExportChangesTSM.Name = "cloudInstancesExportChangesTSM";
-            this.cloudInstancesExportChangesTSM.Size = new System.Drawing.Size(180, 22);
+            this.cloudInstancesExportChangesTSM.Size = new System.Drawing.Size(166, 22);
             this.cloudInstancesExportChangesTSM.Text = "Cloud hosted";
             this.cloudInstancesExportChangesTSM.Click += new System.EventHandler(this.cloudInstancesExportChangesTSM_Click);
             // 
             // saasInstancesExportChangesTSM
             // 
             this.saasInstancesExportChangesTSM.Name = "saasInstancesExportChangesTSM";
-            this.saasInstancesExportChangesTSM.Size = new System.Drawing.Size(180, 22);
+            this.saasInstancesExportChangesTSM.Size = new System.Drawing.Size(166, 22);
             this.saasInstancesExportChangesTSM.Text = "Microsoft Hosted";
             this.saasInstancesExportChangesTSM.Click += new System.EventHandler(this.saasInstancesExportChangesTSM_Click);
             // 
@@ -1430,7 +1467,9 @@
             this.statusStrip.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.projectDescriptionLabel,
-            this.toolStripStatusLabel1});
+            this.toolStripStatusLabel1,
+            this.toolStripStatusLabel2,
+            this.toolStripRefreshProgressBar});
             this.statusStrip.Location = new System.Drawing.Point(0, 527);
             this.statusStrip.Name = "statusStrip";
             this.statusStrip.Padding = new System.Windows.Forms.Padding(2, 0, 9, 0);
@@ -1448,6 +1487,12 @@
             this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
             this.toolStripStatusLabel1.Size = new System.Drawing.Size(257, 17);
             this.toolStripStatusLabel1.Text = "Right click on an instance to perform an action.";
+            // 
+            // toolStripRefreshProgressBar
+            // 
+            this.toolStripRefreshProgressBar.Name = "toolStripRefreshProgressBar";
+            this.toolStripRefreshProgressBar.Size = new System.Drawing.Size(100, 16);
+            this.toolStripRefreshProgressBar.ToolTipText = "Refresh progress";
             // 
             // notifyIcon
             // 
@@ -1468,6 +1513,12 @@
             this.notifyIconMenuClose.Index = 0;
             this.notifyIconMenuClose.Text = "Close 2LCS";
             this.notifyIconMenuClose.Click += new System.EventHandler(this.NotifyIconMenuClose_Click);
+            // 
+            // toolStripStatusLabel2
+            // 
+            this.toolStripStatusLabel2.Name = "toolStripStatusLabel2";
+            this.toolStripStatusLabel2.Size = new System.Drawing.Size(94, 17);
+            this.toolStripStatusLabel2.Text = "Refresh progress";
             // 
             // MainForm
             // 
@@ -1534,6 +1585,9 @@
         private System.Windows.Forms.ToolStripMenuItem customLinksToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem cheLcsProjectLinksToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem cheLcsInstanceLinksToolStripMenuItem;
+        // DXC mlitwin2@dxc.com: new fields in the grid -begin
+        private System.Windows.Forms.ToolStripMenuItem cheRefreshStatusToolStripMenuItem;
+        // DXC mlitwin2@dxc.com: new fields in the grid -end
         private System.Windows.Forms.ToolStripMenuItem cheLogonToAppToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem cheInstanceDetailsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem cheEnvironmentMonitoringToolStripMenuItem;
@@ -1607,21 +1661,6 @@
         private System.Windows.Forms.ToolStripMenuItem saasLogonToPointOfSaleToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem saasLaunchDynamicsRetailStorefrontToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem saasRetailServerURLToolStripMenuItem;
-        private System.Windows.Forms.DataGridViewTextBoxColumn cheInstanceId;
-        private System.Windows.Forms.DataGridViewTextBoxColumn cheEnvironmentId;
-        private System.Windows.Forms.DataGridViewTextBoxColumn cheDisplayName;
-        private System.Windows.Forms.DataGridViewTextBoxColumn cheDeploymentStatus;
-        private System.Windows.Forms.DataGridViewTextBoxColumn cheDeploymentAction;
-        private System.Windows.Forms.DataGridViewTextBoxColumn cheCurrentApplicationBuildVersion;
-        private System.Windows.Forms.DataGridViewTextBoxColumn cheCurrentApplicationReleaseName;
-        private System.Windows.Forms.DataGridViewTextBoxColumn cheCurrentPlatformVersion;
-        private System.Windows.Forms.DataGridViewTextBoxColumn cheCurrentPlatformReleaseName;
-        private System.Windows.Forms.DataGridViewTextBoxColumn cheBuildInfo;
-        private System.Windows.Forms.DataGridViewTextBoxColumn cheDeployedBy;
-        private System.Windows.Forms.DataGridViewTextBoxColumn cheDeployedOn;
-        private System.Windows.Forms.DataGridViewTextBoxColumn cheTopologyName;
-        private System.Windows.Forms.DataGridViewTextBoxColumn cheTopologyType;
-        private System.Windows.Forms.DataGridViewTextBoxColumn cheTopologyVersion;
         private System.Windows.Forms.DataGridViewTextBoxColumn saasInstanceId;
         private System.Windows.Forms.DataGridViewTextBoxColumn saasEnvironmentId;
         private System.Windows.Forms.DataGridViewTextBoxColumn saasDisplayName;
@@ -1651,6 +1690,25 @@
         private System.Windows.Forms.ToolStripMenuItem allInstancesExportChangesTSM;
         private System.Windows.Forms.ToolStripMenuItem cloudInstancesExportChangesTSM;
         private System.Windows.Forms.ToolStripMenuItem saasInstancesExportChangesTSM;
+        private System.Windows.Forms.DataGridViewTextBoxColumn cheRunningStatus;
+        private System.Windows.Forms.DataGridViewTextBoxColumn cheSSLStatus;
+        private System.Windows.Forms.DataGridViewTextBoxColumn cheInstanceId;
+        private System.Windows.Forms.DataGridViewTextBoxColumn cheEnvironmentId;
+        private System.Windows.Forms.DataGridViewTextBoxColumn cheDisplayName;
+        private System.Windows.Forms.DataGridViewTextBoxColumn cheDeploymentStatus;
+        private System.Windows.Forms.DataGridViewTextBoxColumn cheDeploymentAction;
+        private System.Windows.Forms.DataGridViewTextBoxColumn cheCurrentApplicationBuildVersion;
+        private System.Windows.Forms.DataGridViewTextBoxColumn cheCurrentApplicationReleaseName;
+        private System.Windows.Forms.DataGridViewTextBoxColumn cheCurrentPlatformVersion;
+        private System.Windows.Forms.DataGridViewTextBoxColumn cheCurrentPlatformReleaseName;
+        private System.Windows.Forms.DataGridViewTextBoxColumn cheBuildInfo;
+        private System.Windows.Forms.DataGridViewTextBoxColumn cheDeployedBy;
+        private System.Windows.Forms.DataGridViewTextBoxColumn cheDeployedOn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn cheTopologyName;
+        private System.Windows.Forms.DataGridViewTextBoxColumn cheTopologyType;
+        private System.Windows.Forms.DataGridViewTextBoxColumn cheTopologyVersion;
+        private System.Windows.Forms.ToolStripProgressBar toolStripRefreshProgressBar;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel2;
     }
 }
 

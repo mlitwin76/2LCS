@@ -16,6 +16,12 @@ namespace LCS.Forms
         public bool CachingEnabled { get; private set; }
         public bool StoreCache { get; private set; }
 
+        // DXC mlitwin2@dxc.com: new fields in the grid -begin
+
+        public int  QueryTimeout {  get; private set; }
+
+        // DXC mlitwin2@dxc.com: new fields in the grid -end
+
         private void CancelButton_Click(object sender, EventArgs e)
         {
             Close();
@@ -39,7 +45,13 @@ namespace LCS.Forms
             textBoxProjectExcl.Text = Properties.Settings.Default.projOrgExcl;
             CachingEnabledCheckbox.Checked = Properties.Settings.Default.cachingEnabled;
             StoreCacheCheckBox.Checked = Properties.Settings.Default.keepCache;
-            alwaysLogAsAdmin.Checked = Properties.Settings.Default.alwaysLogAsAdmin;
+
+            // DXC mlitwin2@dxc.com: new fields in the grid -begin
+
+            QueryTimeoutTextBox.Text = Properties.Settings.Default.queryTimeout;
+
+            // DXC mlitwin2@dxc.com: new fields in the grid -end
+
             SetStoreCacheEnabledDisabled();
         }
 
@@ -50,7 +62,13 @@ namespace LCS.Forms
             Properties.Settings.Default.projOrgExcl = textBoxProjectExcl.Text;
             Properties.Settings.Default.cachingEnabled = CachingEnabledCheckbox.Checked;
             Properties.Settings.Default.keepCache = StoreCacheCheckBox.Checked;
-            Properties.Settings.Default.alwaysLogAsAdmin = alwaysLogAsAdmin.Checked;
+
+            // DXC mlitwin2@dxc.com: new fields in the grid -begin
+
+            Properties.Settings.Default.queryTimeout = QueryTimeoutTextBox.Text;
+
+            // DXC mlitwin2@dxc.com: new fields in the grid -end
+
             Properties.Settings.Default.Save();
         }
 
@@ -81,6 +99,6 @@ namespace LCS.Forms
             {
                 MessageBox.Show(string.Format("Error while trying to clear cache, caching disabled.\n {0}", result), "Error");
             }
-        }
+        }        
     }
 }

@@ -9,7 +9,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Linq.Dynamic.Core;
+using System.Linq.Dynamic;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -83,59 +83,52 @@ namespace LCS.Forms
 
         public static RDPConnectionDetails ChooseRdpLogonUser(List<RDPConnectionDetails> rdpList)
         {
-            if (Properties.Settings.Default.alwaysLogAsAdmin)
+            Form form = new Form();
+            Button button_OK = new Button() { Text = "OK", Location = new Point(60, 30) };
+            Button button_Cancel = new Button() { Text = "Cancel", Location = new Point(140, 30) };
+            button_OK.DialogResult = DialogResult.OK;
+            button_Cancel.DialogResult = DialogResult.Cancel;
+            FlowLayoutPanel panel = new FlowLayoutPanel
             {
-                return rdpList.FirstOrDefault(x => x.Username.Contains("Admin"));
-            }
-            else
+                Dock = DockStyle.Fill
+            };
+
+            form.Text = "Choose user";
+            form.ClientSize = new Size(280, 60);
+            form.FormBorderStyle = FormBorderStyle.FixedDialog;
+            form.StartPosition = FormStartPosition.CenterScreen;
+            form.AcceptButton = button_OK;
+            form.CancelButton = button_Cancel;
+            form.MinimizeBox = false;
+            form.MaximizeBox = false;
+            form.ControlBox = false;
+
+            form.Controls.AddRange(new Control[] { button_OK, button_Cancel });
+            var i = 1;
+            foreach (var rdpEntry in rdpList.OrderBy(x => x.Username))
             {
-                Form form = new Form();
-                Button button_OK = new Button() { Text = "OK", Location = new Point(60, 30) };
-                Button button_Cancel = new Button() { Text = "Cancel", Location = new Point(140, 30) };
-                button_OK.DialogResult = DialogResult.OK;
-                button_Cancel.DialogResult = DialogResult.Cancel;
-                FlowLayoutPanel panel = new FlowLayoutPanel
+                if (i == 1)
                 {
-                    Dock = DockStyle.Fill
-                };
-
-                form.Text = "Choose user";
-                form.ClientSize = new Size(280, 60);
-                form.FormBorderStyle = FormBorderStyle.FixedDialog;
-                form.StartPosition = FormStartPosition.CenterScreen;
-                form.AcceptButton = button_OK;
-                form.CancelButton = button_Cancel;
-                form.MinimizeBox = false;
-                form.MaximizeBox = false;
-                form.ControlBox = false;
-
-                form.Controls.AddRange(new Control[] { button_OK, button_Cancel });
-                var i = 1;
-                foreach (var rdpEntry in rdpList.OrderBy(x => x.Username))
-                {
-                    if (i == 1)
-                    {
-                        panel.Controls.Add(new RadioButton() { Text = rdpEntry.Username, Checked = true });
-                    }
-                    else
-                    {
-                        panel.Controls.Add(new RadioButton() { Text = rdpEntry.Username });
-                    }
-                    i++;
+                    panel.Controls.Add(new RadioButton() { Text = rdpEntry.Username, Checked = true });
                 }
-                form.Controls.Add(panel);
-
-                DialogResult dialogResult = form.ShowDialog();
-
-                if (dialogResult == DialogResult.Cancel)
-                    return null;
-
-                RadioButton rbSelected = panel.Controls
-                             .OfType<RadioButton>()
-                             .FirstOrDefault(r => r.Checked);
-
-                return rdpList.FirstOrDefault(x => x.Username.Equals(rbSelected.Text));
+                else
+                {
+                    panel.Controls.Add(new RadioButton() { Text = rdpEntry.Username });
+                }
+                i++;
             }
+            form.Controls.Add(panel);
+
+            DialogResult dialogResult = form.ShowDialog();
+
+            if (dialogResult == DialogResult.Cancel)
+                return null;
+
+            RadioButton rbSelected = panel.Controls
+                         .OfType<RadioButton>()
+                         .FirstOrDefault(r => r.Checked);
+
+            return rdpList.FirstOrDefault(x => x.Username.Equals(rbSelected.Text));
         }
 
         public static bool IsOverlapped(IWin32Window window)
@@ -286,7 +279,7 @@ namespace LCS.Forms
         private void CheDataGridView_ColumnHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
         {
             if (cheDataGridView.DataSource == null || _cheInstancesList == null) return;
-            _cheInstancesSource.DataSource = _cheSortAscending ? _cheInstancesList.AsQueryable().OrderBy(cheDataGridView.Columns[e.ColumnIndex].DataPropertyName).ToList() : _cheInstancesList.AsQueryable().OrderBy(cheDataGridView.Columns[e.ColumnIndex].DataPropertyName).Reverse().ToList();
+            _cheInstancesSource.DataSource = _cheSortAscending ? _cheInstancesList.OrderBy(cheDataGridView.Columns[e.ColumnIndex].DataPropertyName).ToList() : _cheInstancesList.OrderBy(cheDataGridView.Columns[e.ColumnIndex].DataPropertyName).Reverse().ToList();
             _cheSortAscending = !_cheSortAscending;
             cheDataGridView.ClearSelection();
         }
@@ -416,7 +409,7 @@ namespace LCS.Forms
                 foreach (var vm in instance.Instances)
                 {
                     var form = new Credentials
-                    {
+                    {                     
                         CredentialsDict = _httpClientHelper.GetCredentials(instance.EnvironmentId, vm.ItemName),
                         Text = $"Instance: {instance.InstanceId}, VM: {vm.MachineName}"
                     };
@@ -1444,6 +1437,32 @@ namespace LCS.Forms
             Cursor = Cursors.Default;
         }
 
+        // DXC mlitwin2@dxc.com: new fields in the grid -begin
+
+        private void cheRefreshInstanceToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            notifyIcon.BalloonTipText = $"Fetching list of environments for project {_selectedProject.Name} from LCS. Please wait...";
+            notifyIcon.BalloonTipTitle = "Fetching environments";
+
+            notifyIcon.ShowBalloonTip(2000); //This setting might be overruled by the OS
+
+            if (tabControl.SelectedTab == tabControl.TabPages["cheTabPage"])
+            {
+                Cursor = Cursors.WaitCursor;
+
+                foreach (DataGridViewRow row in SelectedDataGridView.SelectedRows)
+                {
+                    var item = (CloudHostedInstance)row.DataBoundItem;
+
+                    RefreshChe(true,item);
+
+                }
+                Cursor = Cursors.Default;             
+            }            
+        }
+
+        // DXC mlitwin2@dxc.com: new fields in the grid -end
+
         private void LogoutToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (MessageBox.Show(
@@ -1678,12 +1697,24 @@ namespace LCS.Forms
             Process.Start($"https://lcs.dynamics.com/V2/ProjectUserManagement/{_selectedProject.Id}");
         }
 
-        private void RefreshChe(bool reloadFromLcs = true)
+        // DXC mlitwin2@dxc.com: new fields in the grid -begin
+        //private void RefreshChe(bool reloadFromLcs = true)
+        private void RefreshChe(bool reloadFromLcs = true, CloudHostedInstance _cloudHostedInstance = null)
+        // DXC mlitwin2@dxc.com: new fields in the grid -end
         {
             Cursor = Cursors.WaitCursor;
             if (reloadFromLcs)
             {
-                _cheInstancesList = _httpClientHelper.GetCheInstances();
+                // DXC mlitwin2@dxc.com: new fields in the grid -begin
+
+                //_cheInstancesList = _httpClientHelper.GetCheInstances();
+
+                var projectInstance = Instances?.FirstOrDefault(x => x.LcsProjectId.Equals(_selectedProject.Id));                
+
+                _cheInstancesList = _httpClientHelper.GetCheInstances(toolStripRefreshProgressBar, _cloudHostedInstance, projectInstance.CheInstances);
+
+                // DXC mlitwin2@dxc.com: new fields in the grid -end
+
                 if (_cheInstancesList != null)
                 {
                     _cheInstancesSource.DataSource = _cheInstancesList;
@@ -1729,7 +1760,8 @@ namespace LCS.Forms
 
         private void RefreshSaas(bool reloadFromLcs = true)
         {
-            Cursor = Cursors.WaitCursor;
+            Cursor = Cursors.WaitCursor;            
+
             if (reloadFromLcs)
             {
                 _saasInstancesList = _httpClientHelper.GetHostedInstances();
@@ -1782,7 +1814,7 @@ namespace LCS.Forms
         private void SaasDataGridView_ColumnHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
         {
             if (saasDataGridView.DataSource == null || _saasInstancesList == null) return;
-            _saasInstancesSource.DataSource = _saasSortAscending ? _saasInstancesList.AsQueryable().OrderBy(saasDataGridView.Columns[e.ColumnIndex].DataPropertyName).ToList() : _saasInstancesList.AsQueryable().OrderBy(saasDataGridView.Columns[e.ColumnIndex].DataPropertyName).Reverse().ToList();
+            _saasInstancesSource.DataSource = _saasSortAscending ? _saasInstancesList.OrderBy(saasDataGridView.Columns[e.ColumnIndex].DataPropertyName).ToList() : _saasInstancesList.OrderBy(saasDataGridView.Columns[e.ColumnIndex].DataPropertyName).Reverse().ToList();
             _saasSortAscending = !_saasSortAscending;
             saasDataGridView.ClearSelection();
         }
