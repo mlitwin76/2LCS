@@ -147,6 +147,14 @@ namespace LCS.JsonObjects
         public UpgradeEnvironmentStatus UpgradeEnvironmentStatus { get; set; }
         public int VirtualMachineCount { get; set; }
         public object Warnings { get; set; }
+
+        // DXC mlitwin2@dxc.com: new fields in the grid -begin
+
+        public string RunningStatus { get; set; }
+        public string SSLStatus { get; set; }
+
+        // DXC mlitwin2@dxc.com: new fields in the grid -end
+
     }
 
     public class Credentials

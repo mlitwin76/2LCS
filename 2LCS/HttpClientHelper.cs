@@ -9,9 +9,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+
+// DXC mlitwin2@dxc.com: new fields in the grid -begin
+
+using System.Net.Sockets;
+using System.Security.Cryptography.X509Certificates;
+
+// DXC mlitwin2@dxc.com: new fields in the grid -end
+
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace LCS
 {
@@ -102,9 +111,16 @@ namespace LCS
             if (!_httpClient.DefaultRequestHeaders.Contains("__RequestVerificationToken"))
             {
                 var getResponse = _httpClient.GetAsync(url).Result;
-                getResponse.EnsureSuccessStatusCode();
                 var html = getResponse.Content.ReadAsStringAsync().Result;
-                HtmlDocument doc = new HtmlDocument();
+
+                // DXC mlitwin2@dxc.com: new fields in the grid -begin
+
+                //HtmlDocument doc = new HtmlDocument();
+
+                HtmlAgilityPack.HtmlDocument doc = new HtmlAgilityPack.HtmlDocument();
+
+                // DXC mlitwin2@dxc.com: new fields in the grid -end
+
                 doc.LoadHtml(html);
                 var node = doc.DocumentNode.SelectSingleNode("//input[@name='__RequestVerificationToken']");
                 if (node == null) return;
@@ -341,8 +357,24 @@ namespace LCS
             }
         }
 
-        internal List<CloudHostedInstance> GetCheInstances()
-        {
+        // DXC mlitwin2@dxc.com: new fields in the grid -begin
+
+        //internal List<CloudHostedInstance> GetCheInstances()
+        internal List<CloudHostedInstance> GetCheInstances(ToolStripProgressBar _refreshProgressBar = null, CloudHostedInstance _cloudHostedInstance = null, List<CloudHostedInstance> _cloudHostedInstances = null)
+        {        
+            Dictionary<string, CloudHostedInstance> cloudHostedInstancesUnsorted = null;     
+            int                                     queryTimeout;
+            int                                     progressBarStep          = 0;
+            const int                               numberOfSteps            = 2;            
+            const string                            strPoweredOn             = "Powered on";
+            const string                            strPoweredOff            = "Powered off";
+            const string                            strValid                 = "Valid";
+            const string                            strInvalidExpired        = "Invalid / Expired";
+            const string                            strUnknownTimeoutAOSDown = "Unknown / Timeout / AOS down";
+            const string                            strUnknownDown           = "Unknown / Not running";
+            
+            // DXC mlitwin2@dxc.com: new fields in the grid -end
+
             var result = _httpClient.GetAsync($"{LcsUrl}/DeploymentPortal/GetDeployementDetails/{LcsProjectId}?_={DateTimeOffset.Now.ToUnixTimeSeconds()}").Result;
             var list = new List<CloudHostedInstance>();
             if (!result.IsSuccessStatusCode) return list;
@@ -351,19 +383,173 @@ namespace LCS
             var responseBody = result.Content.ReadAsStringAsync().Result;
             responseBody = responseBody.TrimStart('(');
             responseBody = responseBody.TrimEnd(')');
-
-            try
+            
+            try                            
             {
-                var cloudHostedInstancesUnsorted = JsonConvert.DeserializeObject<Dictionary<string, CloudHostedInstance>>(responseBody);
+                // DXC mlitwin2@dxc.com: new fields in the grid -begin
+
+                //var cloudHostedInstancesUnsorted = JsonConvert.DeserializeObject<Dictionary<string, CloudHostedInstance>>(responseBody);
+                cloudHostedInstancesUnsorted = JsonConvert.DeserializeObject<Dictionary<string, CloudHostedInstance>>(responseBody);                
+
+                /*
+
                 if (cloudHostedInstancesUnsorted != null)
-                {
+                {                    
                     list.AddRange(cloudHostedInstancesUnsorted.Values.OrderBy(x => x.InstanceId));
                 }
+
+                */
+
+                // DXC mlitwin2@dxc.com: new fields in the grid -end
+
             }
             catch
-            {
-                return list;
+            {                
+                return list;                
             }
+
+            // DXC mlitwin2@dxc.com: new fields in the grid -begin
+            
+            if (cloudHostedInstancesUnsorted != null)
+            { 
+                if (!(_refreshProgressBar is null))
+                {
+                    progressBarStep = 100 / cloudHostedInstancesUnsorted.Count / numberOfSteps;
+                }
+
+                // Step 0 - for refreshing only one instance
+
+                if (!(_cloudHostedInstances is null) && !(_cloudHostedInstance is null))
+                {
+                    foreach(CloudHostedInstance instance in cloudHostedInstancesUnsorted.Values)
+                    {
+                        if (instance.InstanceId != _cloudHostedInstance.InstanceId)
+                        {                            
+                            instance.SSLStatus      = _cloudHostedInstances.Find(x => x.InstanceId.Equals(instance.InstanceId)).SSLStatus;
+                            instance.RunningStatus  = _cloudHostedInstances.Find(x => x.InstanceId.Equals(instance.InstanceId)).RunningStatus;
+                        }
+                    }
+                }
+
+                // Step 1 - check rdp response on specific port
+
+                foreach (CloudHostedInstance instance in cloudHostedInstancesUnsorted.Values)
+                {
+                    Boolean isRunning = false;                    
+
+                    if (!(_refreshProgressBar is null))
+                    {
+                        _refreshProgressBar.Value += progressBarStep;
+                    }
+                    
+                    if ((_cloudHostedInstance is null) || instance.InstanceId == _cloudHostedInstance.InstanceId)
+                    { 
+                        try
+                        {
+                            var                         rdpList = this.GetRdpConnectionDetails(instance);
+                            var                         rdpEntry = rdpList.First();
+                            System.Net.Sockets.Socket   socket = new System.Net.Sockets.Socket(System.Net.Sockets.AddressFamily.InterNetwork, System.Net.Sockets.SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
+                            IAsyncResult                socketResult = socket.BeginConnect(rdpEntry.Address, Convert.ToInt32(rdpEntry.Port), null, null);
+
+                            queryTimeout = Convert.ToInt32(Properties.Settings.Default.queryTimeout);
+
+                            if (queryTimeout <= 0)
+                            {
+                                queryTimeout = 2000;
+                            }
+
+                            socketResult.AsyncWaitHandle.WaitOne(queryTimeout, true);
+
+                            if (socket.Connected)
+                            {
+                                socket.Close();
+                                isRunning = true;                            
+                            }
+                        }
+                        catch (SocketException ex)
+                        {
+                            isRunning = false;
+                        }
+
+                        if (isRunning)
+                        {
+                            instance.RunningStatus = strPoweredOn;
+                        }
+                        else
+                        {
+                            instance.RunningStatus = strPoweredOff;                        
+                        }
+                    }
+                }
+
+                // Step 2 - check https response
+
+                foreach (CloudHostedInstance instance in cloudHostedInstancesUnsorted.Values)
+                {                                        
+                    HttpWebRequest  webRequest = null;
+                    HttpWebResponse webResponse = null;
+                    Navigationlink  urlDetails;
+
+                    if (!(_refreshProgressBar is null))
+                    {
+                        _refreshProgressBar.Value += progressBarStep;
+                    }
+
+                    if ((_cloudHostedInstance is null) || instance.InstanceId == _cloudHostedInstance.InstanceId)
+                    { 
+                        if (instance.RunningStatus == strPoweredOn)
+                        {                     
+                            try
+                            {                            
+                                urlDetails = instance.NavigationLinks[0];
+
+                                webRequest = (HttpWebRequest)WebRequest.Create(urlDetails.NavigationUri);
+
+                                webResponse = (HttpWebResponse)webRequest.GetResponse();
+
+                                if (webResponse.StatusCode == System.Net.HttpStatusCode.OK)
+                                {
+                                    instance.SSLStatus = strValid;
+                                }
+                                else
+                                {
+                                    instance.SSLStatus = strInvalidExpired;
+                                }                            
+
+                                webResponse.Close();                            
+
+                                X509Certificate  sslCertificate = webRequest.ServicePoint.Certificate;
+                                X509Certificate2 sslCertificate2 = new X509Certificate2(sslCertificate);
+                            
+                                if (instance.SSLStatus == strValid)
+                                { 
+                                    instance.SSLStatus = instance.SSLStatus + " till " + sslCertificate2.NotAfter;
+                                }
+                                else
+                                { 
+                                    instance.SSLStatus = instance.SSLStatus + " on " + sslCertificate2.NotAfter;
+                                }
+
+                            }
+                            catch
+                            {
+                                instance.SSLStatus = strUnknownTimeoutAOSDown;
+                            }
+                        }
+                        else
+                        {
+                            instance.SSLStatus = strUnknownDown;
+                        }
+                    }
+                }
+
+                list.AddRange(cloudHostedInstancesUnsorted.Values.OrderBy(x => x.InstanceId));
+            }
+
+            _refreshProgressBar.Value = 0;
+
+            // DXC mlitwin2@dxc.com: new fields in the grid -end
+
             return list;
         }
 
@@ -733,7 +919,14 @@ namespace LCS
         {
             if (string.IsNullOrEmpty(data)) return string.Empty;
 
-            var document = new HtmlDocument();
+            // DXC mlitwin2@dxc.com: new fields in the grid -begin
+
+            //var document = new HtmlDocument();
+
+            HtmlAgilityPack.HtmlDocument document = new HtmlAgilityPack.HtmlDocument();
+
+            // DXC mlitwin2@dxc.com: new fields in the grid -end
+
             document.LoadHtml(data);
             var acceptableTags = new string[] { };// { "strong", "em", "u"};
             var nodes = new Queue<HtmlNode>(document.DocumentNode.SelectNodes("./*|./text()"));
