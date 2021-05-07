@@ -199,6 +199,11 @@ namespace LCS.JsonObjects
 
     public class ExportedInstance
     {
+        // DXC mlitwin2@dxc.com: export projects -begin
+        public string RunningStatus { get; set; }
+        public string SSLStatus { get; set; }
+
+        // DXC mlitwin2@dxc.com: export projects -end
         public string BuildInfo { get; set; }
         public string CurrentApplicationBuildVersion { get; set; }
         public string CurrentApplicationReleaseName { get; set; }

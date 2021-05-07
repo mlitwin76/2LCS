@@ -11,7 +11,12 @@ namespace LCS
 
         private static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
         {
-            MessageBox.Show("Please login to LCS again. Your cookie probably expired.");
+            // DXC mlitwin2@dxc.com: export projects -start
+
+            //MessageBox.Show("Please login to LCS again. Your cookie probably expired.);
+            MessageBox.Show("Please login to LCS again. Your cookie probably expired. Consider adjusting 'Query timeout' in parameters for getting CHE statuses.");
+
+            // DXC mlitwin2@dxc.com: export projects -end
             GetMainFormAndCloseOthers();
             mainForm.Cursor = Cursors.Default;
             mainForm.SetLoginButtonEnabled();
