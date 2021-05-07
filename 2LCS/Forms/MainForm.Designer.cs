@@ -48,9 +48,7 @@
             this.cheTopologyType = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.cheTopologyVersion = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.cheInstanceContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
-            // DXC mlitwin2@dxc.com: new fields in the grid -begin
             this.cheRefreshStatusToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            // DXC mlitwin2@dxc.com: new fields in the grid -end
             this.cheLogonToAppToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cheOpenRDPConnectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cheManageVirtualMachineToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -178,11 +176,13 @@
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.projectDescriptionLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
+            this.toolStripStatusRefresh = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripRefreshProgressBar = new System.Windows.Forms.ToolStripProgressBar();
             this.notifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.notifyIconContextMenu = new System.Windows.Forms.ContextMenu();
             this.notifyIconMenuClose = new System.Windows.Forms.MenuItem();
-            this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
+            this.toolStripStatusProjectSelection = new System.Windows.Forms.ToolStripStatusLabel();
+            this.toolStripProjectSelectionProgressBar = new System.Windows.Forms.ToolStripProgressBar();
             ((System.ComponentModel.ISupportInitialize)(this.cheDataGridView)).BeginInit();
             this.cheInstanceContextMenu.SuspendLayout();
             this.mainMenuStrip.SuspendLayout();
@@ -389,9 +389,7 @@
             // 
             this.cheInstanceContextMenu.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.cheInstanceContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            // DXC mlitwin2@dxc.com: new fields in the grid -begin
             this.cheRefreshStatusToolStripMenuItem,
-            // DXC mlitwin2@dxc.com: new fields in the grid -end
             this.cheLogonToAppToolStripMenuItem,
             this.cheOpenRDPConnectionToolStripMenuItem,
             this.cheManageVirtualMachineToolStripMenuItem,
@@ -403,17 +401,15 @@
             this.cheLcsProjectLinksToolStripMenuItem,
             this.cheDeployPackageToolStripMenuItem});
             this.cheInstanceContextMenu.Name = "instanceContextMenuStrip";
-            this.cheInstanceContextMenu.Size = new System.Drawing.Size(192, 224);
+            this.cheInstanceContextMenu.Size = new System.Drawing.Size(192, 246);
             this.cheInstanceContextMenu.Opening += new System.ComponentModel.CancelEventHandler(this.InstanceContextMenu_Opening);
-            // DXC mlitwin2@dxc.com: new fields in the grid -begin
-            //
+            // 
             // cheRefreshStatusToolStripMenuItem
-            //
+            // 
             this.cheRefreshStatusToolStripMenuItem.Name = "cheRefreshStatusToolStripMenuItem";
             this.cheRefreshStatusToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
             this.cheRefreshStatusToolStripMenuItem.Text = "Refresh instance";
             this.cheRefreshStatusToolStripMenuItem.Click += new System.EventHandler(this.cheRefreshInstanceToolStripMenuItem_Click);
-            // DXC mlitwin2@dxc.com: new fields in the grid -end
             // 
             // cheLogonToAppToolStripMenuItem
             // 
@@ -808,14 +804,14 @@
             // allProjectsTSMExportAllInstances
             // 
             this.allProjectsTSMExportAllInstances.Name = "allProjectsTSMExportAllInstances";
-            this.allProjectsTSMExportAllInstances.Size = new System.Drawing.Size(154, 22);
+            this.allProjectsTSMExportAllInstances.Size = new System.Drawing.Size(180, 22);
             this.allProjectsTSMExportAllInstances.Text = "All projects";
             this.allProjectsTSMExportAllInstances.Click += new System.EventHandler(this.allProjectsTSMExportAllInstances_Click);
             // 
             // currentProjectTSMExportAllInstances
             // 
             this.currentProjectTSMExportAllInstances.Name = "currentProjectTSMExportAllInstances";
-            this.currentProjectTSMExportAllInstances.Size = new System.Drawing.Size(154, 22);
+            this.currentProjectTSMExportAllInstances.Size = new System.Drawing.Size(180, 22);
             this.currentProjectTSMExportAllInstances.Text = "Current project";
             this.currentProjectTSMExportAllInstances.Click += new System.EventHandler(this.currentProjectTSMExportAllInstances_Click);
             // 
@@ -1468,8 +1464,10 @@
             this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.projectDescriptionLabel,
             this.toolStripStatusLabel1,
-            this.toolStripStatusLabel2,
-            this.toolStripRefreshProgressBar});
+            this.toolStripStatusRefresh,
+            this.toolStripRefreshProgressBar,
+            this.toolStripStatusProjectSelection,
+            this.toolStripProjectSelectionProgressBar});
             this.statusStrip.Location = new System.Drawing.Point(0, 527);
             this.statusStrip.Name = "statusStrip";
             this.statusStrip.Padding = new System.Windows.Forms.Padding(2, 0, 9, 0);
@@ -1487,6 +1485,12 @@
             this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
             this.toolStripStatusLabel1.Size = new System.Drawing.Size(257, 17);
             this.toolStripStatusLabel1.Text = "Right click on an instance to perform an action.";
+            // 
+            // toolStripStatusRefresh
+            // 
+            this.toolStripStatusRefresh.Name = "toolStripStatusRefresh";
+            this.toolStripStatusRefresh.Size = new System.Drawing.Size(94, 17);
+            this.toolStripStatusRefresh.Text = "Refresh progress";
             // 
             // toolStripRefreshProgressBar
             // 
@@ -1514,11 +1518,16 @@
             this.notifyIconMenuClose.Text = "Close 2LCS";
             this.notifyIconMenuClose.Click += new System.EventHandler(this.NotifyIconMenuClose_Click);
             // 
-            // toolStripStatusLabel2
+            // toolStripStatusProjectSelection
             // 
-            this.toolStripStatusLabel2.Name = "toolStripStatusLabel2";
-            this.toolStripStatusLabel2.Size = new System.Drawing.Size(94, 17);
-            this.toolStripStatusLabel2.Text = "Refresh progress";
+            this.toolStripStatusProjectSelection.Name = "toolStripStatusProjectSelection";
+            this.toolStripStatusProjectSelection.Size = new System.Drawing.Size(44, 17);
+            this.toolStripStatusProjectSelection.Text = "Project";
+            // 
+            // toolStripProjectSelectionProgressBar
+            // 
+            this.toolStripProjectSelectionProgressBar.Name = "toolStripProjectSelectionProgressBar";
+            this.toolStripProjectSelectionProgressBar.Size = new System.Drawing.Size(100, 16);
             // 
             // MainForm
             // 
@@ -1708,7 +1717,9 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn cheTopologyType;
         private System.Windows.Forms.DataGridViewTextBoxColumn cheTopologyVersion;
         private System.Windows.Forms.ToolStripProgressBar toolStripRefreshProgressBar;
-        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel2;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusRefresh;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusProjectSelection;
+        private System.Windows.Forms.ToolStripProgressBar toolStripProjectSelectionProgressBar;
     }
 }
 

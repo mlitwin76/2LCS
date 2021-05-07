@@ -793,6 +793,12 @@ namespace LCS.Forms
 
         private void ExportListOfInstancesForAllProjects(LCSEnvironments _LCSEnvironments, LCSProjectAllCurrent _LCSProjectAllCurrent)
         {
+            // DXC mlitwin2@dxc.com: export projects -begin
+
+            int progressBarStep = 0;
+
+            // DXC mlitwin2@dxc.com: export projects -end
+
             notifyIcon.BalloonTipText = $"Exporting list of {_LCSEnvironments} instances for {_LCSProjectAllCurrent} LCS projects. Please wait...";
             notifyIcon.BalloonTipTitle = $"Exporting list of {_LCSEnvironments} instances";
 
@@ -814,8 +820,26 @@ namespace LCS.Forms
 
             Projects = ExcludeProjectsForOrganization(Projects); //remove all internal projects for export.
 
+            // DXC mlitwin2@dxc.com: export projects -begin
+
+            if (!(Projects is null) && Projects.Count() > 0)
+            { 
+                progressBarStep = 100 / Projects.Count();            
+            }
+
+            // DXC mlitwin2@dxc.com: export projects -end
+
             foreach (var _project in Projects)
             {
+                // DXC mlitwin2@dxc.com: export projects -begin
+
+                if (progressBarStep > 0)
+                {
+                    toolStripProjectSelectionProgressBar.Value += progressBarStep;
+                }
+
+                // DXC mlitwin2@dxc.com: export projects -end
+
                 if (_project.RequestPending == true) continue;
                 _selectedProject = _project;
                 _httpClientHelper.ChangeLcsProjectId(_project.Id.ToString());
@@ -831,6 +855,13 @@ namespace LCS.Forms
                         {
                             var exportedInstance = new ExportedInstance
                             {
+                                // DXC mlitwin2@dxc.com: export projects -begin
+
+                                RunningStatus = _instance.RunningStatus,
+                                SSLStatus = _instance.SSLStatus,
+
+                                // DXC mlitwin2@dxc.com: export projects -end
+
                                 ProjectId = _project.Id.ToString(),
                                 ProjectName = _project.Name,
                                 Organization = _project.OrganizationName,
@@ -858,6 +889,13 @@ namespace LCS.Forms
                         {
                             var exportedInstance = new ExportedInstance
                             {
+                                // DXC mlitwin2@dxc.com: export projects -begin
+
+                                RunningStatus = _instance.RunningStatus,
+                                SSLStatus = _instance.SSLStatus,
+
+                                // DXC mlitwin2@dxc.com: export projects -end
+
                                 ProjectId = _project.Id.ToString(),
                                 ProjectName = _project.Name,
                                 Organization = _project.OrganizationName,
@@ -903,6 +941,12 @@ namespace LCS.Forms
             SetLcsProjectText();
             RefreshChe(false);
             RefreshSaas(false);
+
+            // DXC mlitwin2@dxc.com: export projects -begin
+            
+            toolStripProjectSelectionProgressBar.Value = 0;
+
+            // DXC mlitwin2@dxc.com: export projects -end
         }
 
         private void ExportProjectDataToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1711,7 +1755,14 @@ namespace LCS.Forms
 
                 var projectInstance = Instances?.FirstOrDefault(x => x.LcsProjectId.Equals(_selectedProject.Id));                
 
-                _cheInstancesList = _httpClientHelper.GetCheInstances(toolStripRefreshProgressBar, _cloudHostedInstance, projectInstance.CheInstances);
+                if (!(_cloudHostedInstance is null) && !(projectInstance is null))
+                { 
+                    _cheInstancesList = _httpClientHelper.GetCheInstances(toolStripRefreshProgressBar, _cloudHostedInstance, projectInstance.CheInstances);
+                }
+                else
+                {
+                    _cheInstancesList = _httpClientHelper.GetCheInstances(toolStripRefreshProgressBar);
+                }
 
                 // DXC mlitwin2@dxc.com: new fields in the grid -end
 
